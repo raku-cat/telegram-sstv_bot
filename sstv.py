@@ -37,8 +37,9 @@ def handle(msg):
 		bot.editMessageText(msg_ider, 'Sending...')
 		bot.sendChatAction(chat_id, 'upload_audio')
 		bot.sendAudio(chat_id, open(curtime + '.wav', 'rb'), title=curtime, duration=61)
-		for file in glob.glob(file_id + '*', curtime + '.wav'):
+		for file in glob.glob(file_id + '*'):
 			os.remove(file)
+		os.remove(curtime + '.wav')
 	else:
 		bot.sendMessage(chat_id, 'Please send a compressed image (not through the file selector)')
 
