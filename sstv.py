@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import time
 import telepot
@@ -11,6 +12,9 @@ from datetime import datetime
 
 TOKEN = open('token.txt', 'r').read()
 bot = telepot.Bot(TOKEN)
+directory = '/tmp/sstvbot/'
+if not os.path.exists(directory):
+	os.makedirs(directory)
 print ('Started...')
 
 def handle(msg):
@@ -23,20 +27,24 @@ def handle(msg):
 		file_id = msg['photo'][-1]['file_id']
 		pic = bot.getFile(file_id)
 		file_url = 'https://api.telegram.org/file/bot' + TOKEN + '/' + bot.getFile(file_id)['file_path']
-		urllib.request.urlretrieve(file_url, file_id + '.jpg')
-		img = Image.open(file_id + '.jpg')
+		urllib.request.urlretrieve(file_url, directory + file_id + '.jpg')
+		img = Image.open(directory + file_id + '.jpg')
 		img.thumbnail([320, 256], Image.ANTIALIAS)
-		img.save(file_id + '.jpg', 'JPEG')
+		img.save(directory + file_id + '.jpg', 'JPEG')
 		bot.editMessageText(msg_ider, 'Generating encoding...')
-		subprocess.call(['pisstvpp', '-pm2', file_id + '.jpg'])
+		print('Generating encoding...', end="")
+		subprocess.call(['pisstvpp', '-pm2', directory + file_id + '.jpg'], stdout=open(os.devnull, 'wb'))
+		print('Done')
 		bot.editMessageText(msg_ider, 'Distorting encoding...')
-		pysox.CSoxApp(file_id + '.jpg.wav', curtime + '.wav', effectparams=[ ("overdrive", [bytes(str(randint(60,100)), 'utf-8'), bytes(str(randint(1,40)), 'utf-8')] ), ("ladspa", [b'/usr/lib/ladspa/satan_maximiser_1408.so', bytes(str(randint(-90,-10)), 'utf-8'), bytes(str(randint(-100,-10)), 'utf-8')] ), ("ladspa", [b'/usr/lib/ladspa/valve_rect_1405.so', bytes(str(randint(1,100)), 'utf-8'), bytes(str(randint(1,100)), 'utf-8')] ), ("ladspa", [b'/usr/lib/ladspa/retro_flange_1208.so', bytes(str(randint(1,50)), 'utf-8'), bytes(str(randint(-500,90)), 'utf-8')] ),]).flow()
+		print('Distorting...', end="")
+		pysox.CSoxApp(directory + file_id + '.jpg.wav', directory + curtime + '.wav', effectparams=[ ("overdrive", [bytes(str(randint(60,100)), 'utf-8'), bytes(str(randint(1,40)), 'utf-8')] ), ("ladspa", [b'/usr/lib/ladspa/satan_maximiser_1408.so', bytes(str(randint(-90,-10)), 'utf-8'), bytes(str(randint(-100,-10)), 'utf-8')] ), ("ladspa", [b'/usr/lib/ladspa/valve_rect_1405.so', bytes(str(randint(1,100)), 'utf-8'), bytes(str(randint(1,100)), 'utf-8')] ), ("ladspa", [b'/usr/lib/ladspa/retro_flange_1208.so', bytes(str(randint(1,50)), 'utf-8'), bytes(str(randint(-500,90)), 'utf-8')] ),]).flow()
+		print('Done')
+		print('Sending')
 		bot.editMessageText(msg_ider, 'Sending...')
 		bot.sendChatAction(chat_id, 'upload_audio')
-		bot.sendAudio(chat_id, open(curtime + '.wav', 'rb'), title=curtime, duration=61)
-		for file in glob.glob(file_id + '*'):
+		bot.sendAudio(chat_id, open(directory + curtime + '.wav', 'rb'), title=curtime, duration=61)
+		for file in glob.glob(directory + '*'):
 			os.remove(file)
-		os.remove(curtime + '.wav')
 	else:
 		bot.sendMessage(chat_id, 'Please send a compressed image (not through the file selector)')
 
