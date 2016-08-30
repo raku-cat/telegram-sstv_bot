@@ -26,8 +26,7 @@ def handle(msg):
 		file_url = 'https://api.telegram.org/file/bot' + TOKEN + '/' + bot.getFile(file_id)['file_path']
 		urllib.request.urlretrieve(file_url, file_id + '.jpg')
 		img = Image.open(file_id + '.jpg')
-		img.thumbnail([320, 256], Image.ANTIALIAS)
-		img.save(file_id + '.jpg', 'JPEG')
+		img.resize([320, 256], Image.ANTIALIAS).save(file_id + '.jpg', 'JPEG')
 		bot.editMessageText(msg_ider, 'Generating encoding...')
 		MartinM2(img, 28000, 16).write_wav(file_id + '.jpg.wav')
 		bot.editMessageText(msg_ider, 'Distorting encoding...')
