@@ -38,10 +38,10 @@ def handle(msg):
 		background.paste(
 			img,
 			((size[0] - img.size[0]) // 2, (size[1] - img.size[1]) // 2))
-		background.save(directory + file_id + '.jpg', 'JPEG')
+		background.save(directory + file_id + '.jpg','JPEG')
 		bot.editMessageText(msg_ider, 'Generating encoding...')
 		print('Generating encoding...', end="")
-		MartinM2(img, 28000, 16).write_wav(directory + file_id + '.jpg.wav')
+		MartinM2(Image.open(directory + file_id + '.jpg'), 28000, 16).write_wav(directory + file_id + '.jpg.wav')
 		print('Done')
 		bot.editMessageText(msg_ider, 'Distorting encoding...')
 		print('Distorting...', end="")
