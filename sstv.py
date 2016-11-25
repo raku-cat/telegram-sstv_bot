@@ -2,7 +2,7 @@
 import sys
 import time
 import telepot
-import urllib.request
+import requests
 import glob,os
 import subprocess
 from PIL import Image
@@ -11,26 +11,32 @@ import pysox
 from datetime import datetime
 from pysstv.color import MartinM2
 
-TOKEN = open('token.txt', 'r').read()
-bot = telepot.Bot(TOKEN)
+with open('token.txt', 'r') as f:
+	token=f.read().strip('\n')
+bot = telepot.Bot(token)
 directory = '/tmp/sstvbot/'
 if not os.path.exists(directory):
 	os.makedirs(directory)
-print ('Started...')
 
 def handle(msg):
 	content_type, chat_type, chat_id = telepot.glance(msg)
 	print(content_type, chat_type, chat_id)
 	if content_type == 'photo':
+		print('Recieved message from ' + str(chat_id))
 		for file in glob.glob(directory + '*'):
 			os.remove(file)
-		curtime = datetime.now().strftime("%Y%m%e-%H%M%f")
+		curtime = datetime.now().strftime("%Y%m%d-%H%M%f")
 		initial = bot.sendMessage(chat_id, 'Downloading...')
 		msg_ider = telepot.message_identifier(initial)
 		file_id = msg['photo'][-1]['file_id']
 		pic = bot.getFile(file_id)
-		file_url = 'https://api.telegram.org/file/bot' + TOKEN + '/' + bot.getFile(file_id)['file_path']
-		urllib.request.urlretrieve(file_url, directory + file_id + '.jpg')
+		file_url = 'https://api.telegram.org/file/bot' + token + '/' + bot.getFile(file_id)['file_path']
+		img_file = directory + file_id + '.jpg'
+		r = requests.get(file_url)
+		if r.status_code == 200:
+			with open(img_file, 'wb') as f:
+				for chunk in r:
+					f.write(chunk)
 		img = Image.open(directory + file_id + '.jpg')
 		size = 320,256
 		img.thumbnail(size, Image.ANTIALIAS)
@@ -38,10 +44,10 @@ def handle(msg):
 		background.paste(
 			img,
 			((size[0] - img.size[0]) // 2, (size[1] - img.size[1]) // 2))
-		background.save(directory + file_id + '.jpg','JPEG')
+		background.save(img_file, 'JPEG')
 		bot.editMessageText(msg_ider, 'Generating encoding...')
 		print('Generating encoding...', end="")
-		MartinM2(Image.open(directory + file_id + '.jpg'), 28000, 16).write_wav(directory + file_id + '.jpg.wav')
+		MartinM2(Image.open(img_file), 28000, 16).write_wav(directory + file_id + '.jpg.wav')
 		print('Done')
 		bot.editMessageText(msg_ider, 'Distorting encoding...')
 		print('Distorting...', end="")
@@ -54,6 +60,4 @@ def handle(msg):
 	else:
 		bot.sendMessage(chat_id, 'Please send a compressed image (not through the file selector)')
 
-bot.message_loop(handle)
-while 1:
-	time.sleep(10)
+bot.message_loop(handle, run_forever='Started...')
