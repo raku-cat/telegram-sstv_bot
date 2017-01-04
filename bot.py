@@ -11,7 +11,7 @@ import pysox
 from datetime import datetime
 from pysstv.color import MartinM2
 
-with open('token.txt', 'r') as f:
+with open(sys.path[0] + '/token.txt', 'r') as f:
 	token=f.read().strip('\n')
 bot = telepot.Bot(token)
 directory = '/tmp/sstvbot/'
