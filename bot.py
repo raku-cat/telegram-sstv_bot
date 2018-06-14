@@ -40,7 +40,7 @@ def handle(msg):
 		img = Image.open(directory + file_id + '.jpg')
 		size = 320,256
 		img.thumbnail(size, Image.ANTIALIAS)
-		background = Image.new('RGBA', size, (0, 0, 0, 0))
+		background = Image.new('RGB', size, (0, 0, 0))
 		background.paste(
 			img,
 			((size[0] - img.size[0]) // 2, (size[1] - img.size[1]) // 2))
